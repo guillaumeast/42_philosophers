@@ -5,8 +5,15 @@
 # include <stdbool.h>
 # include <stddef.h>
 
-void	forks_init(t_mutex **forks);
+// Life cycle
+
+void	forks_init(t_forks *forks);
 bool	forks_load(t_run *run);
-void	forks_free(t_run *run, size_t count);
+void	forks_free(t_run *run);
+
+// Core
+
+bool	forks_take(t_philo *philo, bool *out_taken);
+bool	forks_drop(t_philo *philo);
 
 #endif

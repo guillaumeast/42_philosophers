@@ -1,52 +1,42 @@
 #include "forks.h"
 #include "run.h"
 #include "mutex.h"
-#include <pthread.h>
-#include <stdbool.h>
 #include <stdlib.h>
 #include <stdint.h>
 
-void	forks_init(t_mutex **forks)
+void	forks_init(t_forks *forks)
 {
-	*forks = NULL;
+	mutex_init(&forks->mutex);
+	forks->round = UNSET_SIZE_T;
+	forks->meals_eaten = UNSET_SIZE_T;
+	forks->available = NULL;
+	forks->count = UNSET_SIZE_T;
 }
 
 bool	forks_load(t_run *run)
 {
-	t_mutex	**forks;
-	size_t	count;
+	t_forks	*forks;
 	size_t	i;
 
 	forks = &run->forks;
-	count = run->args.philo_count;
-	if (count > SIZE_MAX / sizeof(**forks))
+	forks->count = run->args.philo_count;
+	if (forks->count > SIZE_MAX / sizeof(*forks->available))
 		return (run_stop(run, true, "forks: malloc size overflow"));
-	*forks = malloc(count * sizeof(**forks));
-	if (*forks == NULL)
+	forks->available = malloc(forks->count * sizeof(*forks->available));
+	if (forks->available == NULL)
 		return (run_stop(run, true, "forks: malloc() failed"));
+	if (mutex_load(run, &run->forks.mutex, true) == false)
+		return (free(forks->available), false);
 	i = 0;
-	while (i < count)
-	{
-		mutex_init(&(*forks)[i]);
-		if (mutex_load(run, &(*forks)[i], true) == false)
-			return (forks_free(run, i), false);
-		i++;
-	}
+	while (i < forks->count)
+		forks->available[i++] = true;
 	return (true);
 }
 
-void	forks_free(t_run *run, size_t count)
+void	forks_free(t_run *run)
 {
-	size_t	i;
-
-	if (run->forks == NULL)
-		return ;
-	i = 0;
-	while (i < count)
-	{
-		mutex_free(run, &run->forks[i], true);
-		i++;
-	}
-	free(run->forks);
+	mutex_free(run, &run->forks.mutex, true);
+	if (run->forks.available != NULL)
+		free(run->forks.available);
 	forks_init(&run->forks);
 }

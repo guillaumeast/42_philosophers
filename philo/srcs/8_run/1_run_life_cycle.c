@@ -29,7 +29,7 @@ bool	run_load(t_run *run, int argc, char **argv)
 void	run_free(t_run *run)
 {
 	philos_free(run, run->args.philo_count);
-	forks_free(run, run->args.philo_count);
+	forks_free(run);
 	clock_free(run);
 	args_free(&run->args);
 	logs_free(run);
