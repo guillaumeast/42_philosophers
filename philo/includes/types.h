@@ -1,0 +1,74 @@
+#ifndef TYPES_H
+#define TYPES_H
+
+# include <pthread.h>
+# include <stdbool.h>
+# include <stddef.h>
+
+# define UNSET_MS			-1
+# define UNSET_SIZE_T		0
+# define SLEEP_DURATION_US	500
+
+typedef void			*(*t_routine)(void *);
+typedef long long		t_ms;
+typedef struct s_run	t_run;
+
+typedef struct s_mutex
+{
+	bool			loaded;
+	pthread_mutex_t	var;
+}	t_mutex;
+
+typedef struct s_thread
+{
+	bool		active;
+	pthread_t	data;
+}	t_thread;
+
+typedef struct s_logs
+{
+	t_mutex		mutex;
+	const char	*program_name;	// borrowed from argv[0]
+	bool		error_printed;
+}	t_logs;
+
+typedef struct s_args
+{
+	size_t	philo_count;
+	t_ms	time_to_die;
+	t_ms	time_to_eat;
+	t_ms	time_to_sleep;
+	bool	meals_is_set;
+	size_t	meals_count;
+}	t_args;
+
+typedef struct s_clock
+{
+	t_mutex		mutex;
+	t_ms		start_ms;
+	bool		started;
+	bool		stop;
+	bool		error;
+}	t_clock;
+
+typedef struct s_philo
+{
+	t_mutex		mutex;
+	size_t		id;				// unset untill clock is ready
+	t_thread	thread;
+	t_ms		last_meal;
+	size_t		meal_count;
+	t_mutex		*forks[2];		// borrowed
+	t_run		*run;			// borrowed
+}	t_philo;
+
+typedef struct s_run
+{
+	t_logs	logs;
+	t_args	args;
+	t_clock	clock;
+	t_mutex	*forks;				// owned
+	t_philo	*philos;			// owned
+}	t_run;
+
+#endif

@@ -1,0 +1,27 @@
+#ifndef PHILOS_H
+#define PHILOS_H
+
+# include "types.h"
+# include <stdbool.h>
+# include <stddef.h>
+
+// Life cycle
+
+void	philos_init(t_philo **philos);
+bool	philos_load(t_run *run);
+void	philos_free(t_run *run, size_t count);
+
+// Core
+
+bool	philos_start(t_run *run, t_ms start_ms);
+bool	philos_stop(t_run *run, size_t count);
+
+// Getters and setters
+
+bool	philo_set_last_meal(t_philo *philo, t_ms last_meal);
+bool	philo_get_state(
+			t_philo *philo,
+			t_ms *last_meal,
+			size_t *meal_count);
+
+#endif
