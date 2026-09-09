@@ -2,7 +2,7 @@
 #include "philo_priv.h"
 #include "thread.h"
 
-bool	philos_start(t_run *run, t_ms start_ms)
+bool	philos_start(t_run *run)
 {
 	size_t	i;
 	t_philo	*philo;
@@ -11,7 +11,6 @@ bool	philos_start(t_run *run, t_ms start_ms)
 	while (i < run->args.philo_count)
 	{
 		philo = &run->philos[i];
-		philo->last_meal = start_ms;
 		if (!thread_start(philo->run, &philo->thread, philo_routine, philo))
 			return ((void)philos_stop(run, i), false);
 		i++;

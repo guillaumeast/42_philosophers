@@ -5,6 +5,7 @@
 
 void	philo_init(t_philo *philo)
 {
+	mutex_init(&philo->mutex);
 	philo->id = UNSET_SIZE_T;
 	thread_init(&philo->thread);
 	philo->last_meal = UNSET_MS;
@@ -42,6 +43,7 @@ bool	philo_load(t_run *run, size_t index)
 	if (mutex_load(run, &philo->mutex, true) == false)
 		return (false);
 	philo->id = index + 1;
+	philo->last_meal = 0;
 	philo->meal_count = 0;
 	philo_set_forks(philo, index, run->forks, run->args.philo_count);
 	philo->run = run;

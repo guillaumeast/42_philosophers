@@ -37,7 +37,7 @@ bool	log_death(t_philo *philo, t_ms elapsed)
 	}
 	res = run_stop(run, false, NULL);
 	res = mutex_lock(run, &run->logs.mutex) && res == true;
-	if (printf("%lld %zu %s\n", elapsed, philo->id, "died") > 0)
+	if (printf("%6lld %zu %s\n", elapsed, philo->id, "died") <= 0)
 		res = run_stop(run, true, "printf() failed (a philosopher died)");
 	return (mutex_unlock(run, &run->logs.mutex) == true && res == true);
 }

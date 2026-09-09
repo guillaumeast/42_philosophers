@@ -4,6 +4,7 @@
 
 void	clock_init(t_clock *clock)
 {
+	mutex_init(&clock->mutex);
 	clock->start_ms = UNSET_MS;
 	clock->started = false;
 	clock->stop = false;

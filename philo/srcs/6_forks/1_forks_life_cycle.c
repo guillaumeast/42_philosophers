@@ -27,6 +27,7 @@ bool	forks_load(t_run *run)
 	i = 0;
 	while (i < count)
 	{
+		mutex_init(&(*forks)[i]);
 		if (mutex_load(run, &(*forks)[i], true) == false)
 			return (forks_free(run, i), false);
 		i++;

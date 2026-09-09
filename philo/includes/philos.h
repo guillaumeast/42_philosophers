@@ -13,7 +13,7 @@ void	philos_free(t_run *run, size_t count);
 
 // Core
 
-bool	philos_start(t_run *run, t_ms start_ms);
+bool	philos_start(t_run *run);
 bool	philos_stop(t_run *run, size_t count);
 
 // Getters and setters

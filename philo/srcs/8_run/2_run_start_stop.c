@@ -12,7 +12,7 @@ bool	run_start(t_run *run)
 	if (run->args.meals_is_set == true && run->args.meals_count == 0)
 		return (true);
 	if (time_now(run, &now) == false
-		|| philos_start(run, now) == false)
+		|| philos_start(run) == false)
 		return (false);
 	if (clock_start(run, now) == false)
 		return ((void)philos_stop(run, run->args.philo_count), false);

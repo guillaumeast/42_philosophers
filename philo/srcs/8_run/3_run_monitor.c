@@ -52,24 +52,26 @@ static inline bool	monitor_all(t_run *run)
 
 bool	run_monitor(t_run *run)
 {
-	bool	success;
+	bool	error;
 	bool	stopped;
 
-	success = true;
+	error = false;
 	while (true)
 	{
-		if (!monitor_all(run) || !run_is_stopped(run, &stopped))
+		if (!monitor_all(run) || !clock_is_stopped(run, &stopped))
 		{
-			success = false;
+			error = true;
 			break ;
 		}
 		if (stopped == true)
 			break ;
-		if (sleep_for(run, SLEEP_DURATION_US) == false)
+		if (sleep_for_us(run, SLEEP_DURATION_US) == false)
 		{
-			success = false;
+			error = true;
 			break ;
 		}
 	}
-	return (philos_stop(run, run->args.philo_count) && success);
+	if (philos_stop(run, run->args.philo_count) == false)
+		return (false);
+	return (error == false && clock_is_error(run) == false);
 }
