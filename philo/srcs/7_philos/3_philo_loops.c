@@ -22,8 +22,8 @@ bool	philo_eat(t_philo *philo)
 		&& log_eat(philo, elapsed)
 		&& time_try_add(run, elapsed, run->args.time_to_eat, &target)
 		&& sleep_until(run, target)
-		&& forks_drop(philo)
-		&& philo_increment_meals(philo));
+		&& philo_increment_meals(philo)
+		&& forks_drop(philo));
 }
 
 bool	philo_sleep(t_philo *philo)

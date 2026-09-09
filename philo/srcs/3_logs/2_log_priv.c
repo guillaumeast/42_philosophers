@@ -5,11 +5,7 @@
 
 static inline bool	log_formatted(t_run *run, t_ms elapsed, size_t philo_id, const char *suffix)
 {
-	t_ms	real;
-
-	if (clock_get_elapsed(run, &real) == false)
-		return (false);
-	if (printf("[%6lld] %6lld %zu %s\n", real, elapsed, philo_id, suffix) <= 0)
+	if (printf("%6lld %zu %s\n", elapsed, philo_id, suffix) <= 0)
 		return ((void)clock_stop(run, true), false);
 	return (true);
 }

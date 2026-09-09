@@ -75,6 +75,8 @@ typedef struct s_philo
 	t_thread	thread;
 	t_ms		last_meal;
 	size_t		meal_count;
+	size_t		left_fork;
+	size_t		right_fork;
 	t_run		*run;			// borrowed
 }	t_philo;
 

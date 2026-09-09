@@ -10,6 +10,8 @@ void	philo_init(t_philo *philo)
 	thread_init(&philo->thread);
 	philo->last_meal = UNSET_MS;
 	philo->meal_count = UNSET_SIZE_T;
+	philo->left_fork = UNSET_SIZE_T;
+	philo->right_fork = UNSET_SIZE_T;
 	philo->run = NULL;
 }
 
@@ -23,6 +25,8 @@ bool	philo_load(t_run *run, size_t index)
 	philo->id = index + 1;
 	philo->last_meal = 0;
 	philo->meal_count = 0;
+	philo->left_fork = philo->id - 1;
+	philo->right_fork = philo->id % run->args.philo_count;
 	philo->run = run;
 	return (true);
 }
