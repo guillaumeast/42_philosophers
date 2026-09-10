@@ -1,75 +1,37 @@
 #include "forks.h"
 #include "clock.h"
 #include "mutex.h"
-#include "philos.h"
 #include "helpers.h"
-#include "logs.h"
 #include <limits.h>
 #include <stdint.h>
 
-static inline bool	forks_has_priority(t_philo *philo, bool *out)
+static inline bool	forks_are_available(t_philo *philo)
 {
-	size_t	i;
-	size_t	meal_count;
-	t_ms	last_meal;
-	t_ms	time_min;
-
-	i = 0;
-	time_min = LLONG_MAX;
-	while (i < philo->run->args.philo_count)
-	{
-		if (!philo_get_state(&philo->run->philos[i], &last_meal, &meal_count))
-			return (false);
-		if (last_meal < time_min)
-			time_min = last_meal;
-		i++;
-	}
-	*out = philo->last_meal == time_min;
-	return (true);
+	return (philo->last_meal <= philo->philo_left->last_meal
+		&& philo->last_meal <= philo->philo_right->last_meal
+		&& *philo->fork_left_is_available == true
+		&& *philo->fork_right_is_available == true);
 }
 
-static inline bool	forks_take_and_log(t_forks *forks, t_philo *philo)
+static inline bool	forks_try_take(t_philo *philo, bool *taken)
 {
-	t_ms	elapsed;
-
-	if (clock_get_elapsed(philo->run, &elapsed) == false)
-		return (false);
-	forks->available[philo->left_fork] = false;
-	forks->available[philo->right_fork] = false;
-	forks->meals_eaten++;
-	if (forks->meals_eaten == philo->run->args.philo_count)
-	{
-		forks->round++;
-		forks->meals_eaten = 0;
-	}
-	return (log_fork(philo, elapsed) && log_fork(philo, elapsed));
-}
-
-static inline bool	forks_try_take(t_forks *forks, t_philo *philo, bool *taken)
-{
-	bool	has_priority;
-
 	*taken = false;
-	if (mutex_lock(philo->run, &forks->mutex) == false)
+	if (mutex_lock(philo->run, &philo->run->mutex) == false)
 		return (false);
-	if (forks_has_priority(philo, &has_priority) == false)
-		return ((void)mutex_unlock(philo->run, &forks->mutex), false);
-	if (has_priority == false
-		|| forks->available[philo->left_fork] == false
-		|| forks->available[philo->right_fork] == false)
-		return (mutex_unlock(philo->run, &forks->mutex));
-	if (forks_take_and_log(forks, philo) == false)
-		return ((void)mutex_unlock(philo->run, &forks->mutex), false);
+	if (forks_are_available(philo) == false)
+		return (mutex_unlock(philo->run, &philo->run->mutex));
+	*philo->fork_left_is_available = false;
+	*philo->fork_right_is_available = false;
 	*taken = true;
-	return (mutex_unlock(philo->run, &forks->mutex));
+	if (clock_get_elapsed(philo->run, &philo->last_meal) == false)
+		return ((void)mutex_unlock(philo->run, &philo->run->mutex), false);
+	return (mutex_unlock(philo->run, &philo->run->mutex));
 }
 
 bool	forks_take(t_philo *philo, bool *out_taken)
 {
-	t_forks	*forks;
 	bool	stopped;
 
-	forks = &philo->run->forks;
 	*out_taken = false;
 	while (true)
 	{
@@ -77,7 +39,7 @@ bool	forks_take(t_philo *philo, bool *out_taken)
 			return (false);
 		if (stopped == true)
 			return (true);
-		if (forks_try_take(forks, philo, out_taken) == false)
+		if (forks_try_take(philo, out_taken) == false)
 			return (false);
 		if (*out_taken == true)
 			return (true);
@@ -88,12 +50,10 @@ bool	forks_take(t_philo *philo, bool *out_taken)
 
 bool	forks_drop(t_philo *philo)
 {
-	t_forks	*forks;
-
-	forks = &philo->run->forks;
-	if (mutex_lock(philo->run, &forks->mutex) == false)
+	if (mutex_lock(philo->run, &philo->run->mutex) == false)
 		return (false);
-	forks->available[philo->left_fork] = true;
-	forks->available[philo->right_fork] = true;
-	return (mutex_unlock(philo->run, &forks->mutex));
+	*philo->fork_left_is_available = true;
+	*philo->fork_right_is_available = true;
+	philo->meal_count++;
+	return (mutex_unlock(philo->run, &philo->run->mutex));
 }

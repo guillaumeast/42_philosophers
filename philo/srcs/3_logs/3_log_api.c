@@ -6,22 +6,22 @@
 
 bool	log_fork(t_philo *philo, t_ms elapsed)
 {
-	return (log_priv(philo->run, elapsed, philo->id, "has taken a fork"));
+	return (log_priv(philo->run, elapsed, philo->id, LOG_FORK));
 }
 
-bool	log_eat(t_philo *philo, t_ms elapsed)
+bool	log_eat(t_philo *philo)
 {
-	return (log_priv(philo->run, elapsed, philo->id, "is eating"));
+	return (log_priv(philo->run, philo->last_meal, philo->id, LOG_EAT));
 }
 
 bool	log_sleep(t_philo *philo, t_ms elapsed)
 {
-	return (log_priv(philo->run, elapsed, philo->id, "is sleeping"));
+	return (log_priv(philo->run, elapsed, philo->id, LOG_SLEEP));
 }
 
 bool	log_think(t_philo *philo, t_ms elapsed)
 {
-	return (log_priv(philo->run, elapsed, philo->id, "is thinking"));
+	return (log_priv(philo->run, elapsed, philo->id, LOG_THINK));
 }
 
 bool	log_death(t_philo *philo, t_ms elapsed)
@@ -37,7 +37,7 @@ bool	log_death(t_philo *philo, t_ms elapsed)
 	}
 	res = run_stop(run, false, NULL);
 	res = mutex_lock(run, &run->logs.mutex) && res == true;
-	if (printf("%6lld %zu %s\n", elapsed, philo->id, "died") <= 0)
+	if (printf(RED "%6lld %zu %s\n" NC, elapsed, philo->id, "died") <= 0)
 		res = run_stop(run, true, "printf() failed (a philosopher died)");
 	return (mutex_unlock(run, &run->logs.mutex) == true && res == true);
 }

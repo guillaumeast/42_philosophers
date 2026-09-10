@@ -1,28 +1,22 @@
-#include "philos.h"
 #include "philo_priv.h"
 #include "clock.h"
 #include "forks.h"
 #include "helpers.h"
 #include "logs.h"
 
-bool	philo_eat(t_philo *philo)
+bool	philo_eat(t_philo *philo, bool *has_eat)
 {
 	t_run	*run;
-	bool	forks_taken;
-	t_ms	elapsed;
 	t_ms	target;
 
 	run = philo->run;
-	if (forks_take(philo, &forks_taken) == false)
+	if (forks_take(philo, has_eat) == false)
 		return (false);
-	if (forks_taken == false)
+	if (*has_eat == false)
 		return (true);
-	return (clock_get_elapsed(run, &elapsed)
-		&& philo_set_last_meal(philo, elapsed)
-		&& log_eat(philo, elapsed)
-		&& time_try_add(run, elapsed, run->args.time_to_eat, &target)
+	return (log_eat(philo)
+		&& time_try_add(run, philo->last_meal, run->args.time_to_eat, &target)
 		&& sleep_until(run, target)
-		&& philo_increment_meals(philo)
 		&& forks_drop(philo));
 }
 

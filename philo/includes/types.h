@@ -61,7 +61,6 @@ typedef struct s_args
 
 typedef struct s_clock
 {
-	t_mutex		mutex;
 	t_ms		start_ms;
 	bool		started;
 	bool		stop;
@@ -70,32 +69,37 @@ typedef struct s_clock
 
 typedef struct s_philo
 {
-	t_mutex		mutex;
-	size_t		id;
-	t_thread	thread;
-	t_ms		last_meal;
-	size_t		meal_count;
-	size_t		left_fork;
-	size_t		right_fork;
-	t_run		*run;			// borrowed
+	size_t			id;
+	t_thread		thread;
+	t_ms			last_meal;
+	size_t			meal_count;
+	bool			*fork_left_is_available;	// borrowed
+	bool			*fork_right_is_available;	// borrowed
+	struct s_philo	*philo_left;				// borrowed
+	struct s_philo	*philo_right;				// borrowed
+	t_run			*run;						// borrowed
 }	t_philo;
+
+typedef struct s_philos
+{
+	t_philo	*list;				// owned
+	size_t	count;
+}	t_philos;
 
 typedef struct s_forks
 {
-	t_mutex	mutex;
-	size_t	round;
-	size_t	meals_eaten;
 	bool	*available;			// owned
 	size_t	count;
 }	t_forks;
 
 typedef struct s_run
 {
-	t_logs			logs;
-	t_args			args;
-	t_clock			clock;
-	t_forks			forks;
-	t_philo			*philos;	// owned
+	t_mutex		mutex;
+	t_logs		logs;
+	t_args		args;
+	t_clock		clock;
+	t_forks		forks;
+	t_philos	philos;
 }	t_run;
 
 #endif

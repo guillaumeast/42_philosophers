@@ -10,7 +10,7 @@ bool	philos_start(t_run *run)
 	i = 0;
 	while (i < run->args.philo_count)
 	{
-		philo = &run->philos[i];
+		philo = &run->philos.list[i];
 		if (!thread_start(philo->run, &philo->thread, philo_routine, philo))
 			return ((void)philos_stop(run, i), false);
 		i++;
@@ -28,7 +28,7 @@ bool	philos_stop(t_run *run, size_t count)
 	i = 0;
 	while (i < count)
 	{
-		philo = &run->philos[i];
+		philo = &run->philos.list[i];
 		success = thread_stop(run, &philo->thread) && success == true;
 		i++;
 	}

@@ -4,7 +4,6 @@
 
 void	clock_init(t_clock *clock)
 {
-	mutex_init(&clock->mutex);
 	clock->start_ms = UNSET_MS;
 	clock->started = false;
 	clock->stop = false;
@@ -13,8 +12,7 @@ void	clock_init(t_clock *clock)
 
 bool	clock_load(t_run *run)
 {
-	if (mutex_load(run, &run->clock.mutex, true) == false)
-		return (false);
+	(void)run;
 	return (true);
 }
 
@@ -23,7 +21,7 @@ bool	clock_start(t_run *run, t_ms start_ms)
 	t_clock	*clock;
 
 	clock = &run->clock;
-	if (mutex_lock(run, &clock->mutex) == false)
+	if (mutex_lock(run, &run->mutex) == false)
 		return (false);
 	if (clock->started == true)
 	{
@@ -33,7 +31,7 @@ bool	clock_start(t_run *run, t_ms start_ms)
 	}
 	clock->start_ms = start_ms;
 	clock->started = true;
-	if (mutex_unlock(run, &clock->mutex) == false)
+	if (mutex_unlock(run, &run->mutex) == false)
 	{
 		clock->stop = true;
 		clock->error = true;
@@ -44,21 +42,16 @@ bool	clock_start(t_run *run, t_ms start_ms)
 
 bool	clock_stop(t_run *run, bool error)
 {
-	if (run->clock.started == false)
-		return (true);
-	if (mutex_lock(run, &run->clock.mutex) == false)
+	if (mutex_lock(run, &run->mutex) == false)
 		return (false);
 	run->clock.stop = true;
-	run->clock.error = run->clock.error || error;
-	if (mutex_unlock(run, &run->clock.mutex) == false)
+	run->clock.error |= error;
+	if (mutex_unlock(run, &run->mutex) == false)
 		return (run->clock.error = true, false);
 	return (true);
 }
 
 void	clock_free(t_run *run)
 {
-	if (run->clock.start_ms == UNSET_MS)
-		return ;
-	mutex_free(run, &run->clock.mutex, true);
 	clock_init(&run->clock);
 }

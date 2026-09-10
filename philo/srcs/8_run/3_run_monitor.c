@@ -4,50 +4,38 @@
 #include "run.h"
 #include "helpers.h"
 #include "logs.h"
+#include "mutex.h"
 #include <unistd.h>
 
-static inline bool	monitor_one(
-						t_philo *philo,
-						bool *meals_completed,
-						t_ms elapsed,
-						t_ms deadline)
+static inline bool	run_monitor_all(t_run *run)
 {
-	t_ms	last_meal;
-	size_t	meal_count;
-
-	if (philo_get_state(philo, &last_meal, &meal_count) == false)
-		return (false);
-	if (*meals_completed == true && philo->run->args.meals_count > meal_count)
-		*meals_completed = false;
-	if (last_meal <= deadline)
-		return (log_death(philo, elapsed));
-	return (true);
-}
-
-static inline bool	monitor_all(t_run *run)
-{
-	t_ms	elapsed;
-	t_ms	deadline;
-	bool	meals_completed;
 	bool	stopped;
+	t_ms	elapsed;
+	bool	ended;
 	size_t	i;
+	t_philo	*philo;
 
-	if (clock_get_elapsed(run, &elapsed) == false)
+	if (clock_is_stopped(run, &stopped) == false)
 		return (false);
-	deadline = elapsed - run->args.time_to_die;
-	meals_completed = run->args.meals_is_set;
+	if (stopped == true)
+		return (true);
+	if (mutex_lock(run, &run->mutex) == false)
+		return (false);
+	if (clock_get_elapsed(run, &elapsed) == false)
+		return ((void)mutex_unlock(run, &run->mutex), false);
+	ended = run->args.meals_is_set;
 	i = 0;
-	while (i < run->args.philo_count)
+	while (i < run->philos.count)
 	{
-		if (clock_is_stopped(run, &stopped) == false)
-			return (false);
-		if (stopped == true)
-			return (true);
-		if (!monitor_one(&run->philos[i], &meals_completed, elapsed, deadline))
-			return (false);
-		i++;
+		philo = &run->philos.list[i++];
+		if (ended == true && philo->meal_count < run->args.meals_count)
+			ended = false;
+		if (philo->last_meal <= elapsed - run->args.time_to_die)
+			return (mutex_unlock(run, &run->mutex) && log_death(philo, elapsed));
 	}
-	return (meals_completed == false || run_stop(run, false, NULL));
+	if (mutex_unlock(run, &run->mutex) == false)
+		return (false);
+	return (ended == false || run_stop(run, false, NULL));
 }
 
 bool	run_monitor(t_run *run)
@@ -58,7 +46,7 @@ bool	run_monitor(t_run *run)
 	error = false;
 	while (true)
 	{
-		if (!monitor_all(run) || !clock_is_stopped(run, &stopped))
+		if (!run_monitor_all(run) || !clock_is_stopped(run, &stopped))
 		{
 			error = true;
 			break ;

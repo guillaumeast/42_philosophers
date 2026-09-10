@@ -7,12 +7,10 @@ void	philo_init(t_philo *philo);
 bool	philo_load(t_run *run, size_t index);
 void	philo_free(t_philo *philo);
 
-bool	philo_eat(t_philo *philo);
+bool	philo_eat(t_philo *philo, bool *has_eat);
 bool	philo_sleep(t_philo *philo);
 bool	philo_think(t_philo *philo);
 
 void	*philo_routine(void *arg);
-
-bool	philo_increment_meals(t_philo *philo);
 
 #endif

@@ -1,4 +1,5 @@
 #include "run.h"
+#include "debug.h"
 #include <stdlib.h>
 
 int	main(int argc, char **argv)
@@ -12,6 +13,7 @@ int	main(int argc, char **argv)
 		return (EXIT_FAILURE);
 	if (run_start(&run) == false)
 		return (run_free(&run), EXIT_FAILURE);
+	dump_philos(&run);
 	run_free(&run);
 	return (EXIT_SUCCESS);
 }
