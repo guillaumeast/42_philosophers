@@ -27,7 +27,7 @@ static inline bool	wait_for_death(t_philo *philo)
 		return (false);
 	while (true)
 	{
-		if (clock_is_stopped(philo->run, &stopped) == false)
+		if (clock_is_stopped(philo->run, false, &stopped) == false)
 			return (false);
 		if (stopped == true)
 			break ;
@@ -37,11 +37,10 @@ static inline bool	wait_for_death(t_philo *philo)
 	return (true);
 }
 
+# include <stdio.h>
 void	*philo_routine(void *arg)
 {
 	t_philo	*philo;
-	bool	stopped;
-	bool	has_eat;
 
 	philo = arg;
 	if (wait_for_start(philo) == false)
@@ -50,11 +49,12 @@ void	*philo_routine(void *arg)
 		return ((void)wait_for_death(philo), NULL);
 	while (true)
 	{
-		if (clock_is_stopped(philo->run, &stopped) == false || stopped == true)
-			return (NULL);
-		if (philo_eat(philo, &has_eat) == false || has_eat == false
-			|| philo_sleep(philo) == false
-			|| philo_think(philo) == false)
-			return (NULL);
+		if (!philo_eat(philo) || !philo_sleep(philo) || !philo_think(philo))
+			break ;
 	}
+	// tmp
+	t_ms now;
+	if (clock_get_elapsed(philo->run, &now))
+		(void)log_stop(philo, now);
+	return (NULL);
 }

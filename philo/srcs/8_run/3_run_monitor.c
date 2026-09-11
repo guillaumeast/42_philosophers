@@ -7,59 +7,68 @@
 #include "mutex.h"
 #include <unistd.h>
 
-static inline bool	run_monitor_all(t_run *run)
+static inline bool	is_dead(t_run *run, t_philo *philo, t_ms now, bool *out)
 {
-	bool	stopped;
-	t_ms	elapsed;
-	bool	ended;
-	size_t	i;
-	t_philo	*philo;
+	if (philo->last_meal + run->args.time_to_die <= now)
+	{
+		*out = true;
+		run->clock.stop = true;
+		return (log_death(philo, now));
+	}
+	*out = false;
+	return (true);
+}
 
-	if (clock_is_stopped(run, &stopped) == false)
-		return (false);
-	if (stopped == true)
+static inline bool	run_monitor_all_safe(t_run *run, bool *out_ended)
+{
+	t_ms	now;
+	t_philo	*philo;
+	bool	dead;
+	size_t	i;
+
+	if (run->clock.stop == true)
+	{
+		*out_ended = true;
 		return (true);
-	if (mutex_lock(run, &run->mutex) == false)
+	}
+	if (clock_get_elapsed(run, &now) == false)
 		return (false);
-	if (clock_get_elapsed(run, &elapsed) == false)
-		return ((void)mutex_unlock(run, &run->mutex), false);
-	ended = run->args.meals_is_set;
+	*out_ended = run->args.meals_is_set;
 	i = 0;
 	while (i < run->philos.count)
 	{
 		philo = &run->philos.list[i++];
-		if (ended == true && philo->meal_count < run->args.meals_count)
-			ended = false;
-		if (philo->last_meal <= elapsed - run->args.time_to_die)
-			return (mutex_unlock(run, &run->mutex) && log_death(philo, elapsed));
+		if (is_dead(run, philo, now, &dead) == false)
+			return (false);
+		if (dead == true)
+			return (*out_ended = true);
+		*out_ended = *out_ended && philo->meal_count >= run->args.meals_count;
 	}
-	if (mutex_unlock(run, &run->mutex) == false)
+	return (*out_ended == false || run_stop(run, false, NULL));
+}
+
+static inline bool	run_monitor_all(t_run *run, bool *out_ended)
+{
+	bool	success;
+
+	if (mutex_lock(run, &run->mutex) == false)
 		return (false);
-	return (ended == false || run_stop(run, false, NULL));
+	success = run_monitor_all_safe(run, out_ended);
+	return (mutex_unlock(run, &run->mutex) && success);
 }
 
 bool	run_monitor(t_run *run)
 {
-	bool	error;
-	bool	stopped;
+	bool	ended;
 
-	error = false;
 	while (true)
 	{
-		if (!run_monitor_all(run) || !clock_is_stopped(run, &stopped))
-		{
-			error = true;
-			break ;
-		}
-		if (stopped == true)
+		if (run_monitor_all(run, &ended) == false)
+			return ((void)philos_stop(run, run->args.philo_count), false);
+		if (ended == true)
 			break ;
 		if (sleep_for_us(run, SLEEP_DURATION_US) == false)
-		{
-			error = true;
-			break ;
-		}
+			return ((void)philos_stop(run, run->args.philo_count), false);
 	}
-	if (philos_stop(run, run->args.philo_count) == false)
-		return (false);
-	return (error == false && clock_is_error(run) == false);
+	return (philos_stop(run, run->args.philo_count));
 }

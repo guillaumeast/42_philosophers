@@ -12,14 +12,13 @@ bool	clock_is_started(t_run *run, bool *out)
 	return (mutex_unlock(run, &run->mutex));
 }
 
-bool	clock_is_stopped(t_run *run, bool *out)
+bool	clock_is_stopped(t_run *run, bool mutex_is_locked, bool *out)
 {
-	t_clock	*clock;
-
-	clock = &run->clock;
+	if (mutex_is_locked == true)
+		return (*out = run->clock.stop, true);
 	if (mutex_lock(run, &run->mutex) == false)
 		return (false);
-	*out = clock->stop == true;
+	*out = run->clock.stop;
 	return (mutex_unlock(run, &run->mutex));
 }
 

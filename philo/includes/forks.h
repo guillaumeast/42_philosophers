@@ -13,7 +13,7 @@ void	forks_free(t_run *run);
 
 // Core
 
-bool	forks_take(t_philo *philo, bool *out_taken);
+bool	forks_take(t_philo *philo);
 bool	forks_drop(t_philo *philo);
 
 #endif

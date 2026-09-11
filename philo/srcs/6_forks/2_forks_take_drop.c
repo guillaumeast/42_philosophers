@@ -16,32 +16,32 @@ static inline bool	forks_are_available(t_philo *philo)
 static inline bool	forks_try_take(t_philo *philo, bool *taken)
 {
 	*taken = false;
-	if (mutex_lock(philo->run, &philo->run->mutex) == false)
-		return (false);
+
 	if (forks_are_available(philo) == false)
-		return (mutex_unlock(philo->run, &philo->run->mutex));
+		return (true);
 	*philo->fork_left_is_available = false;
 	*philo->fork_right_is_available = false;
 	*taken = true;
-	if (clock_get_elapsed(philo->run, &philo->last_meal) == false)
-		return ((void)mutex_unlock(philo->run, &philo->run->mutex), false);
-	return (mutex_unlock(philo->run, &philo->run->mutex));
+	return (clock_get_elapsed(philo->run, &philo->last_meal));
 }
 
-bool	forks_take(t_philo *philo, bool *out_taken)
+bool	forks_take(t_philo *philo)
 {
 	bool	stopped;
+	bool	taken;
 
-	*out_taken = false;
+	taken = false;
 	while (true)
 	{
-		if (clock_is_stopped(philo->run, &stopped) == false)
+		if (mutex_lock(philo->run, &philo->run->mutex) == false)
 			return (false);
-		if (stopped == true)
-			return (true);
-		if (forks_try_take(philo, out_taken) == false)
+		if (!clock_is_stopped(philo->run, true, &stopped) || stopped == true)
+			return ((void)mutex_unlock(philo->run, &philo->run->mutex), false);
+		if (forks_try_take(philo, &taken) == false)
+			return ((void)mutex_unlock(philo->run, &philo->run->mutex), false);
+		if (mutex_unlock(philo->run, &philo->run->mutex) == false)
 			return (false);
-		if (*out_taken == true)
+		if (taken == true)
 			return (true);
 		if (sleep_for_us(philo->run, SLEEP_DURATION_US) == false)
 			return (false);
@@ -50,8 +50,12 @@ bool	forks_take(t_philo *philo, bool *out_taken)
 
 bool	forks_drop(t_philo *philo)
 {
+	bool	stopped;
+
 	if (mutex_lock(philo->run, &philo->run->mutex) == false)
 		return (false);
+	if (!clock_is_stopped(philo->run, true, &stopped) || stopped == true)
+		return ((void)mutex_unlock(philo->run, &philo->run->mutex), false);
 	*philo->fork_left_is_available = true;
 	*philo->fork_right_is_available = true;
 	philo->meal_count++;

@@ -18,15 +18,21 @@ bool	sleep_until(t_run *run, t_ms target_elapsed)
 
 	while (true)
 	{
+		if (clock_is_stopped(run, false, &stopped) == false || stopped == true)
+			return (false);
 		if (clock_get_elapsed(run, &elapsed) == false)
 			return (false);
-		if (clock_is_stopped(run, &stopped) == false)
-			return (false);
-		if (elapsed >= target_elapsed || stopped == true)
-			return (true);
+		if (elapsed >= target_elapsed - 1)
+			break ;
 		if (sleep_cycle(run) == false)
 			return (false);
 	}
+	while (elapsed < target_elapsed)
+	{
+		if (clock_get_elapsed(run, &elapsed) == false)
+			return (false);
+	}
+	return (true);
 }
 
 bool	sleep_for_ms(t_run *run, t_ms millisec)

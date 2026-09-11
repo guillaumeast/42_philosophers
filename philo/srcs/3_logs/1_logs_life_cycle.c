@@ -6,7 +6,7 @@ void	logs_init(t_logs *logs)
 {
 	logs->program_name = NULL;
 	mutex_init(&logs->mutex);
-	logs->error_printed = false;
+	logs->closed = false;
 }
 
 bool	logs_load(t_run *run, const char *program_name)

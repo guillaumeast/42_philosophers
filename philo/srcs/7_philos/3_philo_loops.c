@@ -4,16 +4,14 @@
 #include "helpers.h"
 #include "logs.h"
 
-bool	philo_eat(t_philo *philo, bool *has_eat)
+bool	philo_eat(t_philo *philo)
 {
 	t_run	*run;
 	t_ms	target;
 
 	run = philo->run;
-	if (forks_take(philo, has_eat) == false)
+	if (forks_take(philo) == false)
 		return (false);
-	if (*has_eat == false)
-		return (true);
 	return (log_eat(philo)
 		&& time_try_add(run, philo->last_meal, run->args.time_to_eat, &target)
 		&& sleep_until(run, target)

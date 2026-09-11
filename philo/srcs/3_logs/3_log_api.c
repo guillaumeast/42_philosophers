@@ -1,43 +1,27 @@
 #include "logs.h"
 #include "log_priv.h"
-#include "run.h"
-#include "mutex.h"
-#include <stdio.h>
 
 bool	log_fork(t_philo *philo, t_ms elapsed)
 {
-	return (log_priv(philo->run, elapsed, philo->id, LOG_FORK));
+	return (log_priv(philo, elapsed, false, LOG_FORK));
 }
 
 bool	log_eat(t_philo *philo)
 {
-	return (log_priv(philo->run, philo->last_meal, philo->id, LOG_EAT));
+	return (log_priv(philo, philo->last_meal, false, LOG_EAT));
 }
 
 bool	log_sleep(t_philo *philo, t_ms elapsed)
 {
-	return (log_priv(philo->run, elapsed, philo->id, LOG_SLEEP));
+	return (log_priv(philo, elapsed, false, LOG_SLEEP));
 }
 
 bool	log_think(t_philo *philo, t_ms elapsed)
 {
-	return (log_priv(philo->run, elapsed, philo->id, LOG_THINK));
+	return (log_priv(philo, elapsed, false, LOG_THINK));
 }
 
 bool	log_death(t_philo *philo, t_ms elapsed)
 {
-	t_run	*run;
-	bool	res;
-
-	run = philo->run;
-	if (run->logs.program_name == NULL)
-	{
-		(void)printf("philosophers: error: logs are not loaded yet");
-		return (false);
-	}
-	res = run_stop(run, false, NULL);
-	res = mutex_lock(run, &run->logs.mutex) && res == true;
-	if (printf(RED "%6lld %zu %s\n" NC, elapsed, philo->id, "died") <= 0)
-		res = run_stop(run, true, "printf() failed (a philosopher died)");
-	return (mutex_unlock(run, &run->logs.mutex) == true && res == true);
+	return (log_priv(philo, elapsed, false, LOG_DEATH));
 }

@@ -4,6 +4,7 @@
 #include "clock.h"
 #include "helpers.h"
 #include "logs.h"
+#include "mutex.h"
 
 bool	run_start(t_run *run)
 {
@@ -19,12 +20,14 @@ bool	run_start(t_run *run)
 	return (run_monitor(run));
 }
 
-bool	run_stop(t_run *run, bool error, const char *opt_message)
+bool	run_stop(t_run *run, bool locked, bool error, const char *opt_message)
 {
-	bool	success;
-
-	success = clock_stop(run, error);
+	if (!locked)
+		error = !mutex_lock(run, &run->mutex) || error;
+	run->clock.stop = true;
 	if (error == true)
-		log_error(run, opt_message);
-	return (success == true && error == false);
+		log_error(run, opt_message);	// ! deadlock
+	if (!locked && !mutex_unlock(run, &run->mutex))
+		return (false);
+	return (!error);
 }

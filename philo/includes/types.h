@@ -5,26 +5,10 @@
 # include <stdbool.h>
 # include <stddef.h>
 
-// tmp
-#define GREY "\033[0;90m"
-#define BOLD_GREY "\033[1;90m"
-#define GREEN "\033[0;32m"
-#define BOLD_GREEN "\033[1;32m"
-#define BLUE "\033[0;34m"
-#define BOLD_BLUE "\033[1;34m"
-#define RED "\033[0;31m"
-#define BOLD_RED "\033[1;31m"
-#define YELLOW "\033[0;33m"
-#define BOLD_YELLOW "\033[1;33m"
-#define MAGENTA "\033[0;35m"
-#define BOLD_MAGENTA "\033[1;35m"
-#define CYAN "\033[0;36m"
-#define BOLD_CYAN "\033[1;36m"
-#define NC "\033[0m"
+# define SLEEP_DURATION_US	200
 
 # define UNSET_MS			-1
 # define UNSET_SIZE_T		0
-# define SLEEP_DURATION_US	500
 
 typedef void			*(*t_routine)(void *);
 typedef long long		t_ms;
@@ -46,7 +30,7 @@ typedef struct s_logs
 {
 	t_mutex		mutex;
 	const char	*program_name;	// borrowed from argv[0]
-	bool		error_printed;
+	bool		closed;
 }	t_logs;
 
 typedef struct s_args
@@ -57,6 +41,7 @@ typedef struct s_args
 	t_ms	time_to_sleep;
 	bool	meals_is_set;
 	size_t	meals_count;
+	bool	custom_logs;
 }	t_args;
 
 typedef struct s_clock
