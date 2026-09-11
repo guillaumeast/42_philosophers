@@ -21,7 +21,7 @@ static inline bool	wait_for_death(t_philo *philo)
 	t_ms	elapsed;
 	bool	stopped;
 
-	if (clock_get_elapsed(philo->run, &elapsed) == false)
+	if (clock_get_elapsed(philo->run, false, &elapsed) == false)
 		return (false);
 	if (log_fork(philo, elapsed) == false)
 		return (false);
@@ -54,7 +54,7 @@ void	*philo_routine(void *arg)
 	}
 	// tmp
 	t_ms now;
-	if (clock_get_elapsed(philo->run, &now))
+	if (clock_get_elapsed(philo->run, false, &now))
 		(void)log_stop(philo, now);
 	return (NULL);
 }

@@ -1,90 +1,90 @@
-#include "logs.h"
 #include "log_priv.h"
-#include "clock.h"
 #include "mutex.h"
+#include "run.h"
 #include <stdio.h>
 
-static inline void	log_select_format_(
-						t_log_type type,
-						const char **out_suffix,
-						const char **out_color)
+const char	*log_suffix(t_log_type type)
 {
 	if (type == LOG_FORK)
-		*out_suffix = FORK_SUFFIX;
+		return (FORK_SUFFIX);
 	if (type == LOG_EAT)
-	{
-		*out_suffix = EAT_SUFFIX;
-		*out_color = GREEN;
-	}
-	else if (type == LOG_SLEEP)
-		*out_suffix = SLEEP_SUFFIX;
-	else if (type == LOG_THINK)
-	{
-		*out_suffix = THINK_SUFFIX;
-		*out_color = YELLOW;
-	}
-	else if (type == LOG_DEATH)
-	{
-		*out_suffix = DEATH_SUFFIX;
-		*out_color = RED;
-	}
-	else if (type == LOG_STOP)
-	{
-		*out_suffix = STOP_SUFFIX;
-		*out_color = CYAN;
-	}
+		return (EAT_SUFFIX);
+	if (type == LOG_SLEEP)
+		return (SLEEP_SUFFIX);
+	if (type == LOG_THINK)
+		return (THINK_SUFFIX);
+	if (type == LOG_DEATH)
+		return (DEATH_SUFFIX);
+	if (type == LOG_STOP)
+		return (STOP_SUFFIX);
+	return ("unknown");
 }
 
-
-static inline void	log_select_format(
-						t_run *run,
-						t_log_type type,
-						const char **out_suffix,
-						const char **out_color)
+static inline bool	log_mandatory(
+							t_philo *philo,
+							t_ms elapsed,
+							t_log_type type)
 {
-	*out_color = NC;
-	log_select_format_(type, out_suffix, out_color);
-	if (run->args.custom_logs == false)
-		*out_color = NC;
+	return (printf("%lld %zu %s\n", elapsed, philo->id,
+			log_suffix(type)) > 0);
 }
 
 static inline bool	log_formatted(
-						t_run *run,
+						t_philo *philo,
 						t_ms elapsed,
-						size_t philo_id,
 						t_log_type type)
 {
-	const char	*suffix;
-	const char	*color;
+	t_run	*run;
+	bool	success;
 
-	log_select_format(run, type, &suffix, &color);
-	if (printf("%s%6lld %3zu %s\n" NC, color, elapsed, philo_id, suffix) <= 0)
-		return ((void)clock_stop(run, true), false);
+	run = philo->run;
+	if (run->args.custom_logs == true)
+		success = log_custom_formatted(philo, elapsed, type);
+	else
+		success = log_mandatory(philo, elapsed, type);
+	if (success == false)
+	{
+		run->logs.closed = true;
+		run->logs.error = true;
+		return (false);
+	}
 	return (true);
 }
 
 bool	log_priv_safe(t_philo *philo, t_ms elapsed, t_log_type type)
 {
-	if (philo->run->logs.closed && type != LOG_STOP)
+	if (philo->run->logs.error
+		|| (philo->run->logs.closed && type != LOG_STOP))
 		return (true);
-	philo->run->logs.closed = type == LOG_DEATH;
+	if (type == LOG_DEATH)
+		philo->run->logs.closed = true;
 	if (type == LOG_EAT)
 	{
-		return (log_formatted(philo->run, elapsed, philo->id, LOG_FORK)
-			&& log_formatted(philo->run, elapsed, philo->id, LOG_FORK)
-			&& log_formatted(philo->run, elapsed, philo->id, type));
+		return (log_formatted(philo, elapsed, LOG_FORK)
+			&& log_formatted(philo, elapsed, LOG_FORK)
+			&& log_formatted(philo, elapsed, type));
 	}
-	return (log_formatted(philo->run, elapsed, philo->id, type));
+	return (log_formatted(philo, elapsed, type));
 }
 
-bool	log_priv(t_philo *philo, t_ms elapsed, bool locked, t_log_type type)
+bool	log_priv(
+			t_philo *philo,
+			t_ms elapsed,
+			bool state_locked,
+			t_log_type type)
 {
 	t_run	*run;
-	bool	res;
+	bool	success;
 
 	run = philo->run;
-	if (!locked && !mutex_lock(run, &run->logs.mutex))
+	if (mutex_lock(run, &run->logs.mutex) == false)
 		return (false);
-	res = log_priv_safe(philo, elapsed, type);
-	return ((locked || mutex_unlock(run, &run->logs.mutex)) && res);
+	success = log_priv_safe(philo, elapsed, type);
+	if (mutex_unlock(run, &run->logs.mutex) == false)
+		return (false);
+	if (success == true)
+		return (true);
+	if (state_locked == true)
+		return (run_stop_locked(run, true, "printf() failed"));
+	return (run_stop(run, true, "printf() failed"));
 }

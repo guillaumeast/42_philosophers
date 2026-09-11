@@ -1,5 +1,5 @@
 #ifndef LOG_PRIV_H
-#define LOG_PRIV_H
+# define LOG_PRIV_H
 
 # include "types.h"
 
@@ -20,6 +20,12 @@ typedef enum e_log_type
 	LOG_STOP
 }	t_log_type;
 
-bool	log_priv(t_philo *philo, t_ms elapsed, bool locked, t_log_type type);
+const char	*log_suffix(t_log_type type);
+bool		log_custom_formatted(t_philo *philo, t_ms elapsed, t_log_type type);
+bool		log_priv(
+				t_philo *philo,
+				t_ms elapsed,
+				bool state_locked,
+				t_log_type type);
 
 #endif

@@ -14,20 +14,32 @@ bool	run_start(t_run *run)
 		return (true);
 	if (philos_start(run) == false)
 		return (false);
-	if (time_now(run, &now) == false
+	if (time_now(run, false, &now) == false
 		|| clock_start(run, now) == false)
 		return ((void)philos_stop(run, run->args.philo_count), false);
 	return (run_monitor(run));
 }
 
-bool	run_stop(t_run *run, bool locked, bool error, const char *opt_message)
+static bool	run_stop_safe(t_run *run, bool error, const char *message)
 {
-	if (!locked)
-		error = !mutex_lock(run, &run->mutex) || error;
 	run->clock.stop = true;
+	run->clock.error |= error;
 	if (error == true)
-		log_error(run, opt_message);	// ! deadlock
-	if (!locked && !mutex_unlock(run, &run->mutex))
+		return (log_error(run, message));
+	return (logs_close(run));
+}
+
+bool	run_stop_locked(t_run *run, bool error, const char *message)
+{
+	return (run_stop_safe(run, error, message));
+}
+
+bool	run_stop(t_run *run, bool error, const char *message)
+{
+	bool	success;
+
+	if (mutex_lock(run, &run->mutex) == false)
 		return (false);
-	return (!error);
+	success = run_stop_safe(run, error, message);
+	return (mutex_unlock(run, &run->mutex) && success);
 }

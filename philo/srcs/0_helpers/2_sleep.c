@@ -20,7 +20,7 @@ bool	sleep_until(t_run *run, t_ms target_elapsed)
 	{
 		if (clock_is_stopped(run, false, &stopped) == false || stopped == true)
 			return (false);
-		if (clock_get_elapsed(run, &elapsed) == false)
+		if (clock_get_elapsed(run, false, &elapsed) == false)
 			return (false);
 		if (elapsed >= target_elapsed - 1)
 			break ;
@@ -29,7 +29,7 @@ bool	sleep_until(t_run *run, t_ms target_elapsed)
 	}
 	while (elapsed < target_elapsed)
 	{
-		if (clock_get_elapsed(run, &elapsed) == false)
+		if (clock_get_elapsed(run, false, &elapsed) == false)
 			return (false);
 	}
 	return (true);

@@ -5,15 +5,15 @@
 #include "helpers.h"
 #include "logs.h"
 #include "mutex.h"
-#include <unistd.h>
 
 static inline bool	is_dead(t_run *run, t_philo *philo, t_ms now, bool *out)
 {
-	if (philo->last_meal + run->args.time_to_die <= now)
+	if (now >= run->args.time_to_die
+		&& philo->last_meal <= now - run->args.time_to_die)
 	{
 		*out = true;
 		run->clock.stop = true;
-		return (log_death(philo, now));
+		return (log_death_locked(philo, now));
 	}
 	*out = false;
 	return (true);
@@ -31,7 +31,7 @@ static inline bool	run_monitor_all_safe(t_run *run, bool *out_ended)
 		*out_ended = true;
 		return (true);
 	}
-	if (clock_get_elapsed(run, &now) == false)
+	if (clock_get_elapsed(run, true, &now) == false)
 		return (false);
 	*out_ended = run->args.meals_is_set;
 	i = 0;
@@ -44,7 +44,7 @@ static inline bool	run_monitor_all_safe(t_run *run, bool *out_ended)
 			return (*out_ended = true);
 		*out_ended = *out_ended && philo->meal_count >= run->args.meals_count;
 	}
-	return (*out_ended == false || run_stop(run, false, NULL));
+	return (*out_ended == false || run_stop_locked(run, false, NULL));
 }
 
 static inline bool	run_monitor_all(t_run *run, bool *out_ended)

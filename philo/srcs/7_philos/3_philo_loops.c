@@ -25,7 +25,7 @@ bool	philo_sleep(t_philo *philo)
 	t_ms	target;
 
 	run = philo->run;
-	return (clock_get_elapsed(run, &elapsed)
+	return (clock_get_elapsed(run, false, &elapsed)
 		&& log_sleep(philo, elapsed)
 		&& time_try_add(run, elapsed, run->args.time_to_sleep, &target)
 		&& sleep_until(run, target));
@@ -37,5 +37,5 @@ bool	philo_think(t_philo *philo)
 	t_ms	start;
 
 	run = philo->run;
-	return (clock_get_elapsed(run, &start) && log_think(philo, start));
+	return (clock_get_elapsed(run, false, &start) && log_think(philo, start));
 }

@@ -22,7 +22,7 @@ static inline bool	forks_try_take(t_philo *philo, bool *taken)
 	*philo->fork_left_is_available = false;
 	*philo->fork_right_is_available = false;
 	*taken = true;
-	return (clock_get_elapsed(philo->run, &philo->last_meal));
+	return (clock_get_elapsed(philo->run, true, &philo->last_meal));
 }
 
 bool	forks_take(t_philo *philo)

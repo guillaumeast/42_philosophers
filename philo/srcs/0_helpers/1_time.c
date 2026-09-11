@@ -3,14 +3,21 @@
 #include <limits.h>
 #include <sys/time.h>
 
-bool	time_now(t_run *run, t_ms *out)
+static bool	time_error(t_run *run, bool state_locked, const char *message)
+{
+	if (state_locked == true)
+		return (run_stop_locked(run, true, message));
+	return (run_stop(run, true, message));
+}
+
+bool	time_now(t_run *run, bool state_locked, t_ms *out)
 {
 	struct timeval	tv;
 
 	if (gettimeofday(&tv, NULL) != 0)
-		return (run_stop(run, true, "gettimeofday() failed"));
+		return (time_error(run, state_locked, "gettimeofday() failed"));
 	if (tv.tv_sec > (LLONG_MAX - (t_ms)tv.tv_usec / 1000) / 1000)
-		return (run_stop(run, true, "time now overflow"));
+		return (time_error(run, state_locked, "time now overflow"));
 	*out = (t_ms)tv.tv_sec * 1000 + (t_ms)tv.tv_usec / 1000;
 	return (true);
 }

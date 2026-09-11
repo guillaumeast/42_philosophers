@@ -1,6 +1,6 @@
 #include "clock.h"
 #include "mutex.h"
-#include "logs.h"
+#include "run.h"
 
 void	clock_init(t_clock *clock)
 {
@@ -25,9 +25,9 @@ bool	clock_start(t_run *run, t_ms start_ms)
 		return (false);
 	if (clock->started == true)
 	{
-		log_error(run, "clock has already started");
-		clock->stop = true;
-		clock->error = true;
+		(void)run_stop_locked(run, true, "clock has already started");
+		(void)mutex_unlock(run, &run->mutex);
+		return (false);
 	}
 	clock->start_ms = start_ms;
 	clock->started = true;
@@ -37,17 +37,6 @@ bool	clock_start(t_run *run, t_ms start_ms)
 		clock->error = true;
 		return (false);
 	}
-	return (true);
-}
-
-bool	clock_stop(t_run *run, bool error)
-{
-	if (mutex_lock(run, &run->mutex) == false)
-		return (false);
-	run->clock.stop = true;
-	run->clock.error |= error;
-	if (mutex_unlock(run, &run->mutex) == false)
-		return (run->clock.error = true, false);
 	return (true);
 }
 

@@ -1,5 +1,5 @@
 #ifndef LOGS_H
-#define LOGS_H
+# define LOGS_H
 
 # include "types.h"
 
@@ -24,6 +24,7 @@
 void	logs_init(t_logs *logs);
 bool	logs_load(t_run *run, const char *program_name);
 void	logs_free(t_run *run);
+bool	logs_close(t_run *run);
 
 // Core
 
@@ -31,9 +32,10 @@ bool	log_fork(t_philo *philo, t_ms elapsed);
 bool	log_eat(t_philo *philo);
 bool	log_sleep(t_philo *philo, t_ms elapsed);
 bool	log_think(t_philo *philo, t_ms elapsed);
-bool	log_death(t_philo *philo, t_ms elapsed);
+bool	log_death_locked(t_philo *philo, t_ms elapsed);
 bool	log_stop(t_philo *philo, t_ms elapsed);
-void	log_error(t_run *run, const char *opt_message);
+bool	log_error(t_run *run, const char *message);
+bool	log_panic(t_run *run, const char *message);
 void	log_philos(t_run *run);
 
 #endif

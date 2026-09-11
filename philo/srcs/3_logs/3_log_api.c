@@ -21,7 +21,7 @@ bool	log_think(t_philo *philo, t_ms elapsed)
 	return (log_priv(philo, elapsed, false, LOG_THINK));
 }
 
-bool	log_death(t_philo *philo, t_ms elapsed)
+bool	log_death_locked(t_philo *philo, t_ms elapsed)
 {
-	return (log_priv(philo, elapsed, false, LOG_DEATH));
+	return (log_priv(philo, elapsed, true, LOG_DEATH));
 }

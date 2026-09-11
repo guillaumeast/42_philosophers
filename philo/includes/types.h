@@ -1,5 +1,5 @@
 #ifndef TYPES_H
-#define TYPES_H
+# define TYPES_H
 
 # include <pthread.h>
 # include <stdbool.h>
@@ -31,6 +31,7 @@ typedef struct s_logs
 	t_mutex		mutex;
 	const char	*program_name;	// borrowed from argv[0]
 	bool		closed;
+	bool		error;
 }	t_logs;
 
 typedef struct s_args

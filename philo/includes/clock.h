@@ -12,14 +12,13 @@ void	clock_free(t_run *run);
 // Core
 
 bool	clock_start(t_run *run, t_ms start_ms);
-bool	clock_get_start_ms(t_run *run, t_ms *out);
-bool	clock_stop(t_run *run, bool error);
+bool	clock_get_start_ms(t_run *run, bool state_locked, t_ms *out);
 
 // Getters
 
 bool	clock_is_started(t_run *run, bool *out);
 bool	clock_is_stopped(t_run *run, bool mutex_is_locked, bool *out);
 bool	clock_is_error(t_run *run);
-bool	clock_get_elapsed(t_run *run, t_ms *out);
+bool	clock_get_elapsed(t_run *run, bool state_locked, t_ms *out);
 
 #endif
