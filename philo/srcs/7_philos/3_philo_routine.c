@@ -2,18 +2,24 @@
 #include "logs.h"
 #include "clock.h"
 #include "helpers.h"
+#include <stdio.h>
 
 static inline bool	wait_for_start(t_philo *philo)
 {
 	bool	started;
 
-	started = false;
+	if (clock_is_started(philo->run, &started) == false)
+		return (false);
 	while (started == false)
 	{
+		if (sleep_for_us(philo->run, SLEEP_DURATION_US) == false)
+			return (false);
 		if (clock_is_started(philo->run, &started) == false)
 			return (false);
 	}
-	return (true);
+	if (philo->id % 2 == 0)
+		return (true);
+	return (sleep_for_ms(philo->run, philo->run->args.time_to_eat / 2));
 }
 
 static inline bool	wait_for_death(t_philo *philo)
@@ -37,10 +43,10 @@ static inline bool	wait_for_death(t_philo *philo)
 	return (true);
 }
 
-# include <stdio.h>
 void	*philo_routine(void *arg)
 {
 	t_philo	*philo;
+	t_ms	now;
 
 	philo = arg;
 	if (wait_for_start(philo) == false)
@@ -52,8 +58,6 @@ void	*philo_routine(void *arg)
 		if (!philo_eat(philo) || !philo_sleep(philo) || !philo_think(philo))
 			break ;
 	}
-	// tmp
-	t_ms now;
 	if (clock_get_elapsed(philo->run, false, &now))
 		(void)log_stop(philo, now);
 	return (NULL);

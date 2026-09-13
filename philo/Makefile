@@ -19,8 +19,11 @@ $(OBJ_DIR)/%.o : %.c
 	@mkdir -p $(dir $@)
 	$(CC) $(DEPFLAGS) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
+test: re
+	@./tests/test.zsh
+
 clean:
-	rm -rf $(OBJ_DIR)
+	rm -rf $(OBJ_DIR) tests/logs
 
 fclean: clean
 	rm -f $(NAME)
@@ -29,4 +32,4 @@ re: fclean all
 
 -include $(wildcard $(DEPS))
 
-.PHONY: all clean fclean re
+.PHONY: all test clean fclean re
